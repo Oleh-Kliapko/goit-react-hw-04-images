@@ -9,6 +9,7 @@ import { API } from '../services/api';
 import { Loader } from './Loader/Loader';
 import { ButtonLoadMore } from './ButtonLoadMore/ButtonLoadMore';
 import { Modal } from './Modal/Modal';
+import { ScrollEnabled } from '../services/disable-scroll';
 
 export class App extends Component {
   static defaultProps = { PER_PAGE: 12 };
@@ -102,6 +103,7 @@ export class App extends Component {
 
     return (
       <AppWrapper>
+        <ScrollEnabled />
         <Searchbar onSubmit={this.onSubmitForm} />
         {loading && <Loader />}
         <ImageGallery images={images} onSelected={this.onSelectedImage} />

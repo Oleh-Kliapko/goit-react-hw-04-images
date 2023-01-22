@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
-const BASE_URL = 'https://pixabay.com/api/';
 const KEY = '31235804-68392d2c82bd431c260e5e919';
+const BASE_URL = 'https://pixabay.com/api/';
 
 const getImages = async (value, page = 1, perPage = 12) => {
   const options = {

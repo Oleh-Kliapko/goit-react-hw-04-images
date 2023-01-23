@@ -1,38 +1,30 @@
-import React, { Component } from 'react';
+import { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { createPortal } from 'react-dom';
 import { Backdrop, ModalWrapper } from './Modal.styled';
-import { ScrollDisabled } from '../../services/disable-scroll';
+import { ScrollDisabled } from '../../services/scroll';
 
 const modalRoot = document.querySelector('#modal-root');
 
-export class Modal extends Component {
-  componentDidMount() {
-    window.addEventListener('keydown', this.handleKeyDown);
-  }
+export function Modal({ largeImg, tags, onCloseByClick, onCloseByEscape }) {
+  useEffect(
+    () => window.addEventListener('keydown', onCloseByEscape),
+    [onCloseByEscape]
+  );
 
-  componentWillUnmount() {
-    window.removeEventListener('keydown', this.handleKeyDown);
-  }
-
-  handleKeyDown = evt => {
-    if (evt.code === 'Escape') {
-      this.props.onCloseByEscape();
-    }
-  };
-
-  render() {
-    const { largeImg, tags, onCloseByClick } = this.props;
-    return createPortal(
-      <Backdrop id="backdrop" onClick={onCloseByClick}>
-        <ModalWrapper>
-          <img src={largeImg} alt={tags} />
-        </ModalWrapper>
-        <ScrollDisabled />
-      </Backdrop>,
-      modalRoot
-    );
-  }
+  return createPortal(
+    <Backdrop
+      id="backdrop"
+      onClick={onCloseByClick}
+      onKeyDown={onCloseByEscape}
+    >
+      <ModalWrapper>
+        <img src={largeImg} alt={tags} />
+      </ModalWrapper>
+      <ScrollDisabled />
+    </Backdrop>,
+    modalRoot
+  );
 }
 
 Modal.propTypes = {

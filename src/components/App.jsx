@@ -1,5 +1,5 @@
-import React, { Component } from 'react';
-import PropTypes from 'prop-types';
+import { useState, useEffect } from 'react';
+import { Notify } from 'notiflix';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { AppWrapper } from './App.slyled';
@@ -9,125 +9,142 @@ import { API } from '../services/api';
 import { Loader } from './Loader/Loader';
 import { ButtonLoadMore } from './ButtonLoadMore/ButtonLoadMore';
 import { Modal } from './Modal/Modal';
-import { ScrollEnabled } from '../services/disable-scroll';
+import { ScrollEnabled } from '../services/scroll';
 
-export class App extends Component {
-  static defaultProps = { PER_PAGE: 12 };
+export function App() {
+  const PER_PAGE = 12;
+  const [imageName, setImageName] = useState('');
+  const [images, setImages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [visibleBtn, setVisibleBtn] = useState(false);
+  const [largeImg, setLargeImg] = useState('');
+  const [tags, setTags] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalHits, setTotalHits] = useState(0);
 
-  state = {
-    imageName: '',
-    images: [],
-    loading: false,
-    visibleBtn: false,
-    largeImg: '',
-    tags: '',
-    page: 1,
-    totalPages: 0,
-  };
+  // The first rendering of page
+  useEffect(() => {
+    Notify.info('Please start searching', {
+      timeout: 4000,
+      fontSize: '20px',
+      position: 'center-center',
+    });
+  }, []);
 
-  async componentDidUpdate(_, prevState) {
-    const { imageName, page } = this.state;
-    const { PER_PAGE } = this.props;
+  // The first rendering of page after the first searching
+  useEffect(() => {
+    if (!imageName) {
+      return;
+    }
 
-    if (prevState.imageName !== imageName || prevState.page !== page) {
-      this.setState({ loading: true });
+    setPage(1);
+    setLoading(true);
 
-      const data = await API.getImages(imageName, page, PER_PAGE).finally(() =>
-        this.setState({ loading: false })
-      );
+    const fetchData = async () => {
+      return await API.getImages(imageName);
+    };
 
-      const { hits, totalHits } = data;
+    fetchData()
+      .then(data => {
+        const { hits, totalHits } = data;
+        setTotalHits(totalHits);
 
-      if (totalHits !== 0) {
-        this.setState({ visibleBtn: true });
-      }
-
-      if (page > 1) {
-        this.setState(({ images }) => ({
-          images: [...images, ...hits],
-        }));
-      } else {
-        this.setState({ images: hits });
+        setImages(hits);
         toast.success(`Hooray! We found ${totalHits} images`);
         window.scroll(0, 0);
-      }
-
-      const countPages = Math.ceil(totalHits / PER_PAGE);
-      this.setState({ totalPages: countPages });
-
-      if (page >= countPages) {
-        this.setState({ visibleBtn: false });
-        toast.info(
-          `We're sorry, but you've reached the end of search "${imageName}". Please start a new search`
-        );
-      }
-    }
-  }
-
-  onSubmitForm = value => {
-    if (value !== this.state.imageName) {
-      this.setState({
-        imageName: value,
-        images: [],
-        visibleBtn: false,
-        page: 1,
-        totalPages: 0,
+      })
+      .finally(() => {
+        setLoading(false);
       });
+  }, [imageName]);
+
+  // The rendering of page after click on LoadMore Button
+  useEffect(() => {
+    if (!imageName || page === 1) {
+      return;
+    }
+
+    setLoading(true);
+
+    const fetchData = async () => {
+      return await API.getImages(imageName, page, PER_PAGE);
+    };
+
+    fetchData()
+      .then(data => setImages(images => (images = [...images, ...data.hits])))
+      .finally(() => setLoading(false));
+  }, [page]);
+
+  // The rendering of page after reaching of collection end
+  useEffect(() => {
+    if (totalHits === 0) {
+      return;
+    }
+
+    setVisibleBtn(true);
+    const countPages = Math.ceil(totalHits / PER_PAGE);
+    setTotalPages(countPages);
+
+    if (page >= countPages) {
+      setVisibleBtn(false);
+      toast.info(
+        `We're sorry, but you've reached the end of search "${imageName}". Please start a new search`
+      );
+    }
+  }, [totalHits, page]);
+
+  const onSubmitForm = value => {
+    if (value !== imageName) {
+      setImageName(value);
     } else {
       toast.warn('The new search must be different from the current search');
     }
   };
 
-  onLoadMore = () => {
-    this.setState(prevState => ({ page: prevState.page + 1 }));
+  const onLoadMore = () => setPage(state => state + 1);
+
+  const onSelectedImage = ({ largeImageURL, tags }) => {
+    setLargeImg(largeImageURL);
+    setTags(tags);
   };
 
-  onSelectedImage = ({ largeImageURL, tags }) => {
-    this.setState({ largeImg: largeImageURL, tags });
-  };
-
-  onCloseByClick = evt => {
-    const clickBackdrop = evt.target.id;
-    if (clickBackdrop === 'backdrop') {
-      this.setState({ largeImg: '' });
+  const onCloseByClick = evt => {
+    if (evt.target.id === 'backdrop') {
+      setLargeImg('');
+      window.removeEventListener('keydown', onCloseByEscape);
     }
   };
 
-  onCloseByEscape = () => {
-    this.setState({ largeImg: '' });
+  const onCloseByEscape = evt => {
+    if (evt.code === 'Escape') {
+      setLargeImg('');
+      window.removeEventListener('keydown', onCloseByEscape);
+    }
   };
 
-  render() {
-    const { images, loading, visibleBtn, largeImg, tags, page, totalPages } =
-      this.state;
-
-    return (
-      <AppWrapper>
-        <ScrollEnabled />
-        <Searchbar onSubmit={this.onSubmitForm} />
-        {loading && <Loader />}
-        <ImageGallery images={images} onSelected={this.onSelectedImage} />
-        {visibleBtn && (
-          <ButtonLoadMore
-            onLoadMore={this.onLoadMore}
-            page={page}
-            totalPages={totalPages}
-          />
-        )}
-        {largeImg && (
-          <Modal
-            largeImg={largeImg}
-            tags={tags}
-            onCloseByClick={this.onCloseByClick}
-            onCloseByEscape={this.onCloseByEscape}
-          />
-        )}
-        <ToastContainer autoClose={3000} />
-      </AppWrapper>
-    );
-  }
+  return (
+    <AppWrapper>
+      <ScrollEnabled />
+      <Searchbar onSubmit={onSubmitForm} />
+      {loading && <Loader />}
+      <ImageGallery images={images} onSelected={onSelectedImage} />
+      {visibleBtn && (
+        <ButtonLoadMore
+          onLoadMore={onLoadMore}
+          page={page}
+          totalPages={totalPages}
+        />
+      )}
+      {largeImg && (
+        <Modal
+          largeImg={largeImg}
+          tags={tags}
+          onCloseByClick={onCloseByClick}
+          onCloseByEscape={onCloseByEscape}
+        />
+      )}
+      <ToastContainer autoClose={3000} />
+    </AppWrapper>
+  );
 }
-
-App.propTypes = {
-  PER_PAGE: PropTypes.number.isRequired,
-};

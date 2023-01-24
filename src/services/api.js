@@ -4,10 +4,10 @@ import { toast } from 'react-toastify';
 const KEY = '31235804-68392d2c82bd431c260e5e919';
 const BASE_URL = 'https://pixabay.com/api/';
 
-const getImages = async (value, page = 1, perPage = 12) => {
+const getImages = async (query, page = 1, perPage = 12) => {
   const options = {
     params: {
-      q: value,
+      q: query,
       page: page,
       per_page: perPage,
       image_type: 'photo',
@@ -17,13 +17,16 @@ const getImages = async (value, page = 1, perPage = 12) => {
     },
   };
 
-  const { data, status } = await axios.get(`${BASE_URL}`, options);
+  const {
+    data: { hits, totalHits },
+    status,
+  } = await axios.get(`${BASE_URL}`, options);
 
-  if (status !== 200 || data.totalHits === 0) {
+  if (status !== 200 || totalHits === 0) {
     throw new Error(
-      toast.error(`Sorry, there are no images "${value}". Please try again.`)
+      toast.error(`Sorry, there are no images "${query}". Please try again.`)
     );
-  } else return data;
+  } else return { hits, totalHits };
 };
 
 export const API = {

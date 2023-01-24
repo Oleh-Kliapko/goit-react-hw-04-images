@@ -47,8 +47,7 @@ export function App() {
     };
 
     fetchData()
-      .then(data => {
-        const { hits, totalHits } = data;
+      .then(({ hits, totalHits }) => {
         setTotalHits(totalHits);
         setImages(hits);
         toast.success(`Hooray! We found ${totalHits} images`);
@@ -72,7 +71,7 @@ export function App() {
     };
 
     fetchData()
-      .then(data => setImages(images => (images = [...images, ...data.hits])))
+      .then(({ hits }) => setImages(images => (images = [...images, ...hits])))
       .finally(() => setLoading(false));
   }, [page]);
 

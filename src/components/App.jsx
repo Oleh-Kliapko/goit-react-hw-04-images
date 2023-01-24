@@ -50,7 +50,6 @@ export function App() {
       .then(data => {
         const { hits, totalHits } = data;
         setTotalHits(totalHits);
-
         setImages(hits);
         toast.success(`Hooray! We found ${totalHits} images`);
         window.scroll(0, 0);
@@ -62,14 +61,14 @@ export function App() {
 
   // The rendering of page after click on LoadMore Button
   useEffect(() => {
-    if (!imageName || page === 1) {
+    if (page === 1) {
       return;
     }
 
     setLoading(true);
 
     const fetchData = async () => {
-      return await API.getImages(imageName, page, PER_PAGE.current);
+      return await API.getImages(page, PER_PAGE.current);
     };
 
     fetchData()
@@ -93,7 +92,10 @@ export function App() {
         `We're sorry, but you've reached the end of search "${imageName}". Please start a new search`
       );
     }
+    // eslint-disable-next-line
   }, [totalHits, page]);
+
+  // Other functions
 
   const onSubmitForm = value => {
     if (value !== imageName) {

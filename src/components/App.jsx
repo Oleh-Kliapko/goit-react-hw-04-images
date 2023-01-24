@@ -77,7 +77,7 @@ export function App() {
       .finally(() => setLoading(false));
   }, [page]);
 
-  // The rendering of page after reaching of collection end
+  // The rendering of page after reaching of collection ending
   useEffect(() => {
     if (totalHits === 0) {
       return;

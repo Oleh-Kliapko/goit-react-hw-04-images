@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Notify } from 'notiflix';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -12,7 +12,8 @@ import { Modal } from './Modal/Modal';
 import { ScrollEnabled } from '../services/scroll';
 
 export function App() {
-  const PER_PAGE = 12;
+  const PER_PAGE = useRef(12);
+
   const [imageName, setImageName] = useState('');
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -68,7 +69,7 @@ export function App() {
     setLoading(true);
 
     const fetchData = async () => {
-      return await API.getImages(imageName, page, PER_PAGE);
+      return await API.getImages(imageName, page, PER_PAGE.current);
     };
 
     fetchData()
@@ -83,7 +84,7 @@ export function App() {
     }
 
     setVisibleBtn(true);
-    const countPages = Math.ceil(totalHits / PER_PAGE);
+    const countPages = Math.ceil(totalHits / PER_PAGE.current);
     setTotalPages(countPages);
 
     if (page >= countPages) {

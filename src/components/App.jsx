@@ -42,11 +42,7 @@ export function App() {
     setPage(1);
     setLoading(true);
 
-    const fetchData = async () => {
-      return await API.getImages(imageName);
-    };
-
-    fetchData()
+    API.getImages(imageName)
       .then(({ hits, totalHits }) => {
         setTotalHits(totalHits);
         setImages(hits);
@@ -66,11 +62,7 @@ export function App() {
 
     setLoading(true);
 
-    const fetchData = async () => {
-      return await API.getImages(page, PER_PAGE.current);
-    };
-
-    fetchData()
+    API.getImages(page, PER_PAGE.current)
       .then(({ hits }) => setImages(images => (images = [...images, ...hits])))
       .finally(() => setLoading(false));
   }, [page]);

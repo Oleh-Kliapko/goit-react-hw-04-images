@@ -16,13 +16,12 @@ export function App() {
 
   const [imageName, setImageName] = useState('');
   const [images, setImages] = useState([]);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [visibleBtn, setVisibleBtn] = useState(false);
   const [largeImg, setLargeImg] = useState('');
   const [tags, setTags] = useState('');
-  const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [totalHits, setTotalHits] = useState(0);
 
   // The first rendering of page
   useEffect(() => {
@@ -33,63 +32,53 @@ export function App() {
     });
   }, []);
 
-  // The first rendering of page after the first searching
+  // The rendering of page after searching
   useEffect(() => {
     if (!imageName) {
       return;
     }
 
-    setPage(1);
     setLoading(true);
 
-    API.getImages(imageName)
+    API.getImages(imageName, page, PER_PAGE.current)
       .then(({ hits, totalHits }) => {
-        setTotalHits(totalHits);
-        setImages(hits);
-        toast.success(`Hooray! We found ${totalHits} images`);
-        window.scroll(0, 0);
+        setVisibleBtn(true);
+
+        if (page === 1) {
+          setImages(hits);
+          toast.success(`Hooray! We found ${totalHits} images`);
+          window.scroll(0, 0);
+        } else {
+          setImages(images => (images = [...images, ...hits]));
+        }
+
+        const countPages = Math.ceil(totalHits / PER_PAGE.current);
+        setTotalPages(countPages);
+
+        if (page >= countPages) {
+          setVisibleBtn(false);
+          toast.info(
+            `We're sorry, but you've reached the end of search "${imageName}". Please start a new search`
+          );
+        }
       })
+      .catch(() =>
+        toast.error(
+          `Sorry, there are no images "${imageName}". Please try again.`
+        )
+      )
       .finally(() => {
         setLoading(false);
       });
-  }, [imageName]);
-
-  // The rendering of page after click on LoadMore Button
-  useEffect(() => {
-    if (page === 1) {
-      return;
-    }
-
-    setLoading(true);
-
-    API.getImages(page, PER_PAGE.current)
-      .then(({ hits }) => setImages(images => (images = [...images, ...hits])))
-      .finally(() => setLoading(false));
-  }, [page]);
-
-  // The last page after reaching of collection ending - remove button LoadMore and notification
-  useEffect(() => {
-    if (totalHits === 0) {
-      return;
-    }
-
-    setVisibleBtn(true);
-    const countPages = Math.ceil(totalHits / PER_PAGE.current);
-    setTotalPages(countPages);
-
-    if (page >= countPages && countPages !== 0) {
-      setVisibleBtn(false);
-      toast.info(
-        `We're sorry, but you've reached the end of search "${imageName}". Please start a new search`
-      );
-    }
-  }, [totalHits, page, imageName]);
+  }, [imageName, page]);
 
   // Other functions
 
   const onSubmitForm = value => {
     if (value !== imageName) {
       setImageName(value);
+      setPage(1);
+      setImages([]);
     } else {
       toast.warn('The new search must be different from the current search');
     }

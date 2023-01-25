@@ -1,10 +1,9 @@
 import axios from 'axios';
-import { toast } from 'react-toastify';
 
 const KEY = '31235804-68392d2c82bd431c260e5e919';
 const BASE_URL = 'https://pixabay.com/api/';
 
-const getImages = async (query, page = 1, perPage = 12) => {
+const getImages = async (query = [], page = 1, perPage = 12) => {
   const options = {
     params: {
       q: query,
@@ -23,9 +22,7 @@ const getImages = async (query, page = 1, perPage = 12) => {
   } = await axios.get(`${BASE_URL}`, options);
 
   if (status !== 200 || totalHits === 0) {
-    throw new Error(
-      toast.error(`Sorry, there are no images "${query}". Please try again.`)
-    );
+    throw new Error();
   } else return { hits, totalHits };
 };
 

@@ -67,7 +67,7 @@ export function App() {
       .finally(() => setLoading(false));
   }, [page]);
 
-  // The rendering of page after reaching of collection ending
+  // The last page after reaching of collection ending - remove button LoadMore and notification
   useEffect(() => {
     if (totalHits === 0) {
       return;
@@ -77,14 +77,13 @@ export function App() {
     const countPages = Math.ceil(totalHits / PER_PAGE.current);
     setTotalPages(countPages);
 
-    if (page >= countPages) {
+    if (page >= countPages && countPages !== 0) {
       setVisibleBtn(false);
       toast.info(
         `We're sorry, but you've reached the end of search "${imageName}". Please start a new search`
       );
     }
-    // eslint-disable-next-line
-  }, [totalHits, page]);
+  }, [totalHits, page, imageName]);
 
   // Other functions
 

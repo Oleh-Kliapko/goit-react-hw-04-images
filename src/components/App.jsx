@@ -23,7 +23,7 @@ export function App() {
   const [tags, setTags] = useState('');
   const [totalPages, setTotalPages] = useState(0);
 
-  // The first rendering of page
+  // The first rendering of homepage
   useEffect(() => {
     Notify.info('Please start searching', {
       timeout: 4000,
@@ -43,13 +43,11 @@ export function App() {
     API.getImages(imageName, page, PER_PAGE.current)
       .then(({ hits, totalHits }) => {
         setVisibleBtn(true);
+        setImages(images => (images = [...images, ...hits]));
 
         if (page === 1) {
-          setImages(hits);
           toast.success(`Hooray! We found ${totalHits} images`);
           window.scroll(0, 0);
-        } else {
-          setImages(images => (images = [...images, ...hits]));
         }
 
         const countPages = Math.ceil(totalHits / PER_PAGE.current);
@@ -91,19 +89,7 @@ export function App() {
     setTags(tags);
   };
 
-  const onCloseByClick = evt => {
-    if (evt.target.id === 'backdrop') {
-      setLargeImg('');
-      window.removeEventListener('keydown', onCloseByEscape);
-    }
-  };
-
-  const onCloseByEscape = evt => {
-    if (evt.code === 'Escape') {
-      setLargeImg('');
-      window.removeEventListener('keydown', onCloseByEscape);
-    }
-  };
+  const onCloseByEscape = () => setLargeImg('');
 
   return (
     <AppWrapper>
@@ -122,7 +108,6 @@ export function App() {
         <Modal
           largeImg={largeImg}
           tags={tags}
-          onCloseByClick={onCloseByClick}
           onCloseByEscape={onCloseByEscape}
         />
       )}

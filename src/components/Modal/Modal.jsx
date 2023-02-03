@@ -7,14 +7,6 @@ import { ScrollDisabled } from '../../services/scroll';
 const modalRoot = document.querySelector('#modal-root');
 
 export function Modal({ largeImg, tags, onCloseByEscape }) {
-  const onKeyEsc = useCallback(
-    evt => {
-      if (evt.code === 'Escape') {
-        onCloseByEscape();
-      }
-    },
-    [onCloseByEscape]
-  );
 
   const onClickBackdrop = evt => {
     console.log(evt);
@@ -24,9 +16,14 @@ export function Modal({ largeImg, tags, onCloseByEscape }) {
   };
 
   useEffect(() => {
-    window.addEventListener('keydown', onKeyEsc);
-    return () => window.removeEventListener('keydown', onKeyEsc);
-  }, [onCloseByEscape, onKeyEsc]);
+    const listner = evt => {
+      if (evt.code === 'Escape') {
+        onCloseByEscape();
+      }
+    },
+    window.addEventListener('keydown', listner);
+    return () => window.removeEventListener('keydown', listner);
+  }, [onCloseByEscape]);
 
   return createPortal(
     <Backdrop id="backdrop" onClick={onClickBackdrop}>

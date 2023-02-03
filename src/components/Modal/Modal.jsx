@@ -16,14 +16,12 @@ export function Modal({ largeImg, tags, onCloseByEscape }) {
     [onCloseByEscape]
   );
 
-  const onClickBackdrop = useCallback(
-    ({ target, currentTarget }) => {
-      if (target === currentTarget) {
-        onCloseByEscape();
-      }
-    },
-    [onCloseByEscape]
-  );
+  const onClickBackdrop = evt => {
+    console.log(evt);
+    if (evt.target.id === 'backdrop') {
+      onCloseByEscape();
+    }
+  };
 
   useEffect(() => {
     window.addEventListener('keydown', onKeyEsc);
